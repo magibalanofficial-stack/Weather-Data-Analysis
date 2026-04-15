@@ -1,7 +1,7 @@
 import Chart from 'chart.js/auto';
 
 // ===== Constants =====
-const NOMINATIM_URL   = 'https://nominatim.openstreetmap.org/search';
+const GEOCODING_URL   = 'https://geocoding-api.open-meteo.com/v1/search';
 const WEATHER_URL     = 'https://api.open-meteo.com/v1/forecast';
 const AIR_QUALITY_URL = 'https://air-quality-api.open-meteo.com/v1/air-quality';
 
@@ -130,9 +130,9 @@ function onSearchInput() {
 
     searchTimeout = setTimeout(async () => {
         try {
-            const r = await fetch(`${NOMINATIM_URL}?q=${encodeURIComponent(q)}&format=json&limit=6&addressdetails=1`);
+            const r = await fetch(`${GEOCODING_URL}?name=${encodeURIComponent(q)}&count=6&language=en&format=json`);
             const d = await r.json();
-            renderResults(d);
+            renderResults(d.results || []);
         } catch {
             showToast('Search unavailable. Check your connection.', 'error');
         }
@@ -163,12 +163,14 @@ function renderResults(res) {
     res.forEach(r => {
         const div  = document.createElement('div');
         div.className = 'search-result-item';
-        const addr = r.address;
-        const main = addr.city || addr.town || addr.village || addr.suburb || r.display_name.split(',')[0];
-        const sub  = [addr.state, addr.country].filter(Boolean).join(', ');
+        
+        const main = r.name;
+        const sub  = [r.admin1, r.country].filter(Boolean).join(', ');
+        const fullDisplay = sub ? `${main}, ${sub}` : main;
+        
         div.innerHTML = `<span class="result-main">${main}</span><span class="result-sub">${sub}</span>`;
         div.onclick = () => {
-            fetchAll(r.lat, r.lon, r.display_name);
+            fetchAll(r.latitude, r.longitude, fullDisplay);
             resultsDropdown.classList.add('hidden');
             searchInput.value = '';
             searchClear.classList.add('hidden');
