@@ -1,0 +1,5 @@
+{
+  "appId": "com.aerostats.app",
+  "appName": "AeroStats",
+  "webDir": "dist"
+}
