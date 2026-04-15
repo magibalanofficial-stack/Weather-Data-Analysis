@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroStats | Global Weather Intelligence</title>
+    <meta name="description" content="Advanced atmospheric intelligence platform with real-time weather data, air quality monitoring, and 7-day global forecasting.">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+    <script>
+        window.addEventListener('error', function(e) {
+            const el = document.getElementById('current-city-name');
+            if (el) el.textContent = 'Err: ' + e.message;
+        }, true);
+        window.addEventListener('unhandledrejection', function(e) {
+            const el = document.getElementById('current-city-name');
+            if (el) el.textContent = 'Promise Err: ' + (e.reason && e.reason.message ? e.reason.message : e.reason);
+        });
+    </script>
+
+    <!-- Ambient Background Orbs -->
+    <div class="bg-orbs" aria-hidden="true">
+        <div class="orb orb-1"></div>
+        <div class="orb orb-2"></div>
+        <div class="orb orb-3"></div>
+    </div>
+
+    <div id="app">
+
+        <!-- ===== HEADER ===== -->
+        <header class="app-header">
+            <div class="logo">
+                <div class="logo-icon-wrap">
+                    <span class="logo-icon">▲</span>
+                </div>
+                <div class="logo-text">
+                    <h1>AeroStats</h1>
+                    <span class="logo-tagline">Global Intelligence</span>
+                </div>
+            </div>
+
+            <div class="search-container">
+                <div class="search-box">
+                    <svg class="search-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/>
+                    </svg>
+                    <input type="text" id="city-search" placeholder="Search any city globally..." autocomplete="off">
+                    <button id="search-clear" class="search-clear-btn hidden" aria-label="Clear">✕</button>
+                    <div id="search-results" class="search-results-dropdown hidden"></div>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button id="unit-toggle" class="action-btn" title="Toggle °C / °F">
+                    <span id="unit-label">°C</span>
+                </button>
+                <button id="theme-toggle" class="action-btn" title="Switch Theme">
+                    <svg id="theme-icon" xmlns="http://www.w3.org/2000/svg" width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="4"/>
+                        <path d="M12 2v2"/><path d="M12 20v2"/>
+                        <path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/>
+                        <path d="M2 12h2"/><path d="M20 12h2"/>
+                        <path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+                    </svg>
+                </button>
+                <div class="location-pill" id="location-display">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/>
+                        <circle cx="12" cy="10" r="3"/>
+                    </svg>
+                    <span id="current-city-name">Loading...</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- ===== SMART INSIGHT BAR ===== -->
+        <div class="insights-strip hidden" id="insight-bar">
+            <div class="insight-icon">✨</div>
+            <span id="ai-prediction-text">Analyzing atmospheric patterns...</span>
+        </div>
+
+        <!-- ===== MAIN DASHBOARD ===== -->
+        <main class="dashboard">
+
+            <!-- LEFT: Current Conditions -->
+            <section class="overview-section">
+
+                <!-- Main Temperature Card -->
+                <div class="metric-card main-temp glass">
+                    <div class="card-header">
+                        <div>
+                            <span class="label">Current Intelligence</span>
+                            <div class="condition-text" id="condition-text">Initializing...</div>
+                        </div>
+                        <div class="weather-icon-large" id="weather-icon-main">--</div>
+                    </div>
+                    <div class="temp-display">
+                        <span id="current-temp">--</span><span class="unit" id="temp-unit">°C</span>
+                    </div>
+                    <div class="temp-meta">
+                        <span class="feels-like">Feels like <strong id="feels-like-val">--</strong>°</span>
+                        <span class="temp-range">H: <span id="high-temp">--</span>° &nbsp; L: <span id="low-temp">--</span>°</span>
+                    </div>
+                </div>
+
+                <!-- 2×3 Stats Grid -->
+                <div class="stats-grid">
+
+                    <!-- AQI -->
+                    <div class="metric-card mini glass">
+                        <div class="mini-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M8 2h8l4 10H4L8 2z"/><path d="M4 12v6a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-6"/>
+                            </svg>
+                            <span>Air Quality</span>
+                        </div>
+                        <div class="mini-value"><span id="aqi-val">--</span></div>
+                        <span id="aqi-status" class="aqi-badge hidden">Good</span>
+                    </div>
+
+                    <!-- Humidity -->
+                    <div class="metric-card mini glass">
+                        <div class="mini-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 2 L12 13 Q5 18 8 22 Q10 25 12 24 Q14 25 16 22 Q19 18 12 13 Z"/>
+                            </svg>
+                            <span>Humidity</span>
+                        </div>
+                        <div class="mini-value"><span id="humidity-val">--</span><span class="mini-unit">%</span></div>
+                    </div>
+
+                    <!-- Wind Gust -->
+                    <div class="metric-card mini glass">
+                        <div class="mini-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M17.7 7.7a2.5 2.5 0 1 1 1.8 4.3H2"/><path d="M9.6 4.6A2 2 0 1 1 11 8H2"/><path d="M12.6 19.4A2 2 0 1 0 14 16H2"/>
+                            </svg>
+                            <span>Wind Gust</span>
+                        </div>
+                        <div class="mini-value"><span id="gust-val">--</span><span class="mini-unit"> km/h</span></div>
+                    </div>
+
+                    <!-- Visibility -->
+                    <div class="metric-card mini glass">
+                        <div class="mini-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/>
+                            </svg>
+                            <span>Visibility</span>
+                        </div>
+                        <div class="mini-value"><span id="vis-val">--</span><span class="mini-unit"> km</span></div>
+                    </div>
+
+                    <!-- UV Index -->
+                    <div class="metric-card mini glass">
+                        <div class="mini-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="12" cy="12" r="4"/>
+                                <path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/>
+                                <path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/>
+                                <path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/>
+                            </svg>
+                            <span>UV Index</span>
+                        </div>
+                        <div class="mini-value"><span id="uv-val">--</span></div>
+                        <span id="uv-label" class="uv-badge hidden"></span>
+                    </div>
+
+                    <!-- Wind Direction -->
+                    <div class="metric-card mini glass">
+                        <div class="mini-header">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M5 12h14"/><path d="m12 5 7 7-7 7"/>
+                            </svg>
+                            <span>Wind</span>
+                        </div>
+                        <div class="mini-value" style="font-size: 1rem;"><span id="wind-dir-val">--</span></div>
+                    </div>
+
+                </div>
+
+                <!-- Sunrise / Sunset Card -->
+                <div class="metric-card sun-card glass">
+                    <div class="sun-item">
+                        <div class="sun-icon">🌅</div>
+                        <div>
+                            <div class="label">Sunrise</div>
+                            <div id="sunrise-val" class="sun-time">--:--</div>
+                        </div>
+                    </div>
+                    <div class="sun-divider"></div>
+                    <div class="sun-item">
+                        <div class="sun-icon">🌇</div>
+                        <div>
+                            <div class="label">Sunset</div>
+                            <div id="sunset-val" class="sun-time">--:--</div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- RIGHT: Charts -->
+            <section class="analysis-section">
+
+                <!-- 72-Hour Temp Trend -->
+                <div class="chart-container glass">
+                    <div class="chart-header">
+                        <div>
+                            <h3>72-Hour Temperature Analysis</h3>
+                            <p class="chart-desc">Projected atmospheric temperature curve</p>
+                        </div>
+                        <div class="chart-badge">72H</div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="tempTrendChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Humidity + Precipitation (side by side) -->
+                <div class="analysis-grid">
+                    <div class="chart-container glass">
+                        <div class="chart-header">
+                            <div>
+                                <h3>Atmospheric Moisture</h3>
+                                <p class="chart-desc">Relative humidity over 72h</p>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="humidityAnalysisChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="chart-container glass">
+                        <div class="chart-header">
+                            <div>
+                                <h3>Precipitation Risk</h3>
+                                <p class="chart-desc">Rain probability forecast</p>
+                            </div>
+                        </div>
+                        <div class="chart-wrapper">
+                            <canvas id="precipChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pressure Chart -->
+                <div class="chart-container glass">
+                    <div class="chart-header">
+                        <div>
+                            <h3>Pressure Dynamics</h3>
+                            <p class="chart-desc">Surface pressure trend (hPa)</p>
+                        </div>
+                    </div>
+                    <div class="chart-wrapper">
+                        <canvas id="pressureChart"></canvas>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- BOTTOM: 7-Day Forecast (full width) -->
+            <section class="prediction-section glass">
+                <div class="chart-header" style="margin-bottom: 1.4rem;">
+                    <div>
+                        <h3>7-Day Global Prediction</h3>
+                        <p class="chart-desc">Projected conditions, temperature range & precipitation chance</p>
+                    </div>
+                </div>
+                <div class="prediction-grid" id="prediction-panel">
+                    <!-- Injected by JS -->
+                </div>
+            </section>
+
+        </main>
+
+        <footer class="app-footer">
+            <div class="creator-mark">
+                <span style="opacity: 0.7;">Designed &amp; Developed by</span> 
+                <strong style="color: var(--primary-accent); margin-left: 5px;">Magibalan.V.S</strong>
+            </div>
+            <p>© 2026 <strong>AeroStats</strong> — Global Atmospheric Intelligence</p>
+            <p class="footer-credit">Powered by <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo</a> &amp; <a href="https://nominatim.openstreetmap.org" target="_blank" rel="noopener">Nominatim OSM</a></p>
+        </footer>
+
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" aria-live="polite"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loader" class="loader-overlay hidden">
+        <div class="loader-content">
+            <div class="spinner"></div>
+            <p id="loader-text">Gathering Global Intelligence...</p>
+        </div>
+    </div>
+
+    <script type="module" src="/main.js"></script>
+</body>
+</html>
